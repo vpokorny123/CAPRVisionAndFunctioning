@@ -1,0 +1,214 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(data.table)
+main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
+source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
+```
+
+```{r}
+#context sensitivity and cognition
+#let's look at bivariate associations first
+perception_variables = c('context_sensitivity_all_trials') 
+cognition_variables = c('bacs_total', 'hvlt_total_score','wrat_standardscore')
+p_vals = NULL
+combo_names = NULL
+for (j in perception_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+#then multivariate prediction
+summary(lm(context_sensitivity ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+pub_ready_stats(lm(context_sensitivity_all_trials ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+
+#context sensitivity and social/role
+cognition_variables = c('gfs_current', 'gfr_current','sps_total')
+p_vals = NULL
+combo_names = NULL
+for (j in perception_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+
+
+```
+
+```{r}
+#let's look at bivariate associations with Mooney
+mooney_variables = c('inverted_faces_reported')
+cognition_variables = c('bacs_total', 'wrat_standardscore','hvlt_total_score')
+p_vals = NULL
+combo_names = NULL
+for (j in mooney_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+cognition_variables = c('gfs_current', 'gfr_current','sps_total')
+p_vals = NULL
+combo_names = NULL
+for (j in mooney_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+pub_ready_stats(lm(inverted_faces_reported ~ gfs_current+gfr_current+sps_total, main_df))
+
+
+#cognitive functioning
+print("Mooney Faces and Cognitive Variables")
+summary(lm(upright_faces_reported ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+summary(lm(inverted_faces_reported ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+```
+2. Which social and cognitive functioning variables best predict atypical task performance?
+I guess by this I just meant throw them all in the same model and see what predicts best?
+```{r}
+summary(lm(upright_faces_reported ~ gfs_current+gfr_current + sps_total +demo_age_in_years +
+             wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+summary(lm(inverted_faces_reported ~ gfs_current+gfr_current + sps_total +demo_age_in_years +
+             wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+summary(lm(context_sensitivity ~ gfs_current + gfr_current + sps_total +demo_age_in_years +
+             wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+```
+3. Now let's look at group differences?
+```{r}
+library(afex)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+
+#-----------Ebbinghaus group differences-----
+pub_ready_stats(anova(lm(context_sensitivity_all_trials ~ phenotype_final, main_df)))
+posthoc_groups = unique(main_df$phenotype_final)
+contrasts = list(c(1,2),c(1,3),c(1,4))
+post_hoc_res <- NULL
+for (j in contrasts ){
+   group1 = posthoc_groups[j][1]
+   group2 = posthoc_groups[j][2]
+   res<- t.test(main_df$context_sensitivity_all_trials[main_df$phenotype_final==group1],
+          main_df$context_sensitivity_all_trials[main_df$phenotype_final==group2],
+          var.equal=TRUE)
+   print(as.character(c(group1,group2)))
+   print(pub_ready_stats(res))
+}
+
+#----- Mooney group differences -------
+main_df_long <- pivot_longer(main_df, cols = c('inverted_faces_reported',
+                                              'upright_faces_reported'), 
+                                     names_to = 'condition', 
+                                     values_to = 'responses')
+res <- aov_ez(data = main_df_long, dv = 'responses', within = 'condition',
+                        between = 'phenotype_final', id = 'src_subject_id')
+pub_ready_stats(res)
+
+
+post_hoc_res <- NULL
+for (j in contrasts ){
+   group1 = posthoc_groups[j][1]
+   group2 = posthoc_groups[j][2]
+   res<- t.test(main_df$`Inverted Faces Reported`[main_df$phenotype_final==group1],
+          main_df$`Inverted Faces Reported`[main_df$phenotype_final==group2],var.equal=TRUE)
+   print(paste(as.character(c(group1,group2)),'inverted faces'))
+   print(pub_ready_stats(res))
+   
+   res<- t.test(main_df$`Upright Faces Reported`[main_df$phenotype_final==group1],
+          main_df$`Upright Faces Reported`[main_df$phenotype_final==group2],var.equal=TRUE)
+   print(paste(as.character(c(group1,group2)),'upright faces'))
+   print(pub_ready_stats(res))
+}
+#plot
+plot_groups(main_df_long, quo(phenotype_final))
+```
+
+```{r}
+# test whether correlations are significantly different for social vs. cognitive
+
+y = 'context_sensitivity_all_trials'
+X1 = c('bacs_total','hvlt_total_score','wrat_standardscore')
+X2 = c('gfr_current', 'gfs_current','sps_total')
+Xy_vars = c(y,X1,X2)
+cocor_df<- main_df[,Xy_vars, with = FALSE]
+cocor_df_complete<- cocor_df[complete.cases(cocor_df),]
+j<- unlist(cocor_df_complete[,y, with = FALSE])
+k<- unifactorScores(cocor_df_complete[,X1, with = FALSE]) 
+h<- unifactorScores(cocor_df_complete[,X2, with = FALSE])
+run.cocor.dep.groups.overlap(j, k, h)
+pub_ready_stats(cor.test(j,k)) #context sensitivity and cognition
+pub_ready_stats(cor.test(j,h))#context sensitivity and social/role
+scatterplot(j,k)
+scatterplot(j,h)
+
+
+y = 'inverted_faces_reported'
+X1 = c('bacs_total','hvlt_total_score','wrat_standardscore')
+X2 = c('gfr_current', 'gfs_current','sps_total')
+Xy_vars = c(y,X1,X2)
+cocor_df<- main_df[,Xy_vars, with = FALSE]
+cocor_df_complete<- cocor_df[complete.cases(cocor_df),]
+j<- unlist(cocor_df_complete[,y, with = FALSE])
+k_fac_res<- unifactorScores(cocor_df_complete[,X1, with = FALSE])
+k <- k_fac_res$scores
+print(k_fac_res$FSI)
+h_fac_res<- unifactorScores(cocor_df_complete[,X2, with = FALSE])
+h <- h_fac_res$scores
+print(h_fac_res$FSI)
+run.cocor.dep.groups.overlap(j, k, h)
+pub_ready_stats(cor.test(j,k)) #inverted mooney face and cognition
+pub_ready_stats(cor.test(j,h))#inverted mooner face and social/role
+scatterplot(j,k)
+scatterplot(j,h)
+
+```
+
+Ok so story so far is that treating cognition and social/role functioning as latent variables and grabbing factor scores we get a significant difference in correlations
+
+
+
+
+```{r}
+#does context sensitivity correlate with inverted face detection
+pub_ready_stats(cor.test(main_df$context_sensitivity_all_trials,main_df$inverted_faces_reported))
+pub_ready_stats(cor.test(main_df$context_sensitivity_all_trials,main_df$upright_faces_reported))
+```
+
+
+

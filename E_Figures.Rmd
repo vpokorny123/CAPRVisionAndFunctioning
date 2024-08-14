@@ -1,0 +1,92 @@
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
+source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
+```
+
+```{r}
+main_df_long = pivot_longer(main_df, 
+                            cols = c('BACS Total','WRAT Standard','HVLT Total'),
+                            names_to = 'cognitive_variables',
+                            values_to = 'Score')
+
+ggplot(main_df_long,aes(x = `Score` , y = `Context Sensitivity`)) +
+  geom_point(size = 1) +
+  stat_smooth(method = "lm", 
+              formula = y ~ x, 
+              geom = "smooth") +
+  stat_cor(label.y = 105, p.accuracy = .001) +
+  theme_bw() +
+  coord_cartesian(ylim=c(0, 105)) +
+  facet_wrap(~cognitive_variables, scales = "free_x")
+ggsave(paste0(main_dir,"Figures/Cog_EBB_scatters.svg"))
+
+```
+
+```{r}
+main_df_long = pivot_longer(main_df, 
+                            cols = c('Global Functioning: Role',
+                                     'Global Functioning: Social',
+                                     'Social Phobia Scale'),
+                            names_to = 'variables_of_int',
+                            values_to = 'Score')
+
+ggplot(main_df_long,aes(x =`Score` , y = `Inverted Faces Reported`)) +
+  geom_point(size = 1) +
+  stat_smooth(method = "lm", 
+              formula = y ~ x, 
+              geom = "smooth") +
+  stat_cor(p.accuracy = .001) +
+  theme_bw() +
+  facet_wrap(~variables_of_int, scales = 'free_x')
+ggsave(paste0(main_dir,"Figures/Social_Mooney_scatters.svg"))
+
+```
+
+```{r}
+# let's do factor scores now
+y = 'inverted_faces_reported'
+X = c('gfr_current', 'gfs_current','sps_total')
+Xy_vars = c(y,X)
+plot_df<- main_df[,Xy_vars, with = FALSE]
+plot_df_complete<- plot_df[complete.cases(plot_df),]
+X_fac_res<- unifactorScores(plot_df_complete[,X, with = FALSE])
+plot_df_complete$`Social/Role Functioning Scores`<- X_fac_res$scores
+
+ggplot(plot_df_complete, 
+       aes(x = `Social/Role Functioning Scores`, 
+                             y = `inverted_faces_reported`)) +
+  geom_point(size = 1) +
+  stat_smooth(method = "lm", 
+              formula = y ~ x, 
+              geom = "smooth") +
+  stat_cor(p.accuracy = .001) 
+```
+```{r}
+# let's do factor scores now
+y = 'context_sensitivity_all_trials'
+X = c('bacs_total','hvlt_total_score','wrat_standardscore')
+Xy_vars = c(y,X)
+plot_df<- main_df[,Xy_vars, with = FALSE]
+plot_df_complete<- plot_df[complete.cases(plot_df),]
+X_fac_res<- unifactorScores(plot_df_complete[,X, with = FALSE])
+plot_df_complete$`Cognition Scores`<- X_fac_res$scores
+
+ggplot(plot_df_complete, 
+       aes(x = `Cognition Scores`, 
+                             y = base::get(y))) +
+  geom_point(size = 1) +
+  stat_smooth(method = "lm", 
+              formula = y ~ x, 
+              geom = "smooth") +
+  stat_cor(p.accuracy = .001) +
+  ylab("Context Sensitivity")
+
+```
+
+

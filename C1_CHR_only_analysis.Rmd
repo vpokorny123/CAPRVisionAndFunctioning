@@ -1,0 +1,115 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+First question from data request:
+1. Does atypical perceptual processing track with reduced cognitive and social functioning?
+2. Which social and cognitive functioning variables best predict atypical task performance?
+3. Does accounting for cognitive/social functioning significantly reduce group differences?
+
+So atypical perception is:
+1. Ebbinghaus -> context_sensitivity, misleading_index, helpful_index (don't know what 2sd is yet)
+2. Mooney -> Silverstein's paper from 2021 seems largely focused on upright_percent_reported 
+and inverted_percent_reported
+
+Cognitive functioning is: 
+1. the Wide Range Achievement Test (WRAT) -> wrat_standardscore
+2. the Brief Assessment of Cognition in Schizophrenia-Symbol Coding (BACS) -> bacs_total
+3. Hopkins Verbal Learning Test-Revised (HVLT-R) -> hvlt_total_score
+
+Social functioning is Global Functioning Scale:
+1. Social and Role (GFS-S/R) -> gfs, gfr
+2. Social Phobia Scale ->sps
+
+```{r}
+library(data.table)
+main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
+source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
+#subset to only CHR
+main_df<-main_df[main_df$phenotype_final=='chr',]
+```
+1. Does atypical perceptual processing track with reduced cognitive and social functioning?
+```{r}
+#context sensitivity and cognition
+#let's look at bivariate associations first
+perception_variables = c('context_sensitivity_all_trials')
+cognition_variables = c('bacs_total', 'wrat_standardscore','hvlt_total_score')
+p_vals = NULL
+combo_names = NULL
+for (j in perception_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+#then multivariate prediction
+summary(lm(context_sensitivity ~ wrat_standardscore + bacs_total + hvlt_total_score +nocontext_sizediffother_perc_acc, main_df))
+pub_ready_stats(lm(context_sensitivity ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
+
+#context sensitivity and social/role
+cognition_variables = c('gfs_current', 'gfr_current','sps_total')
+p_vals = NULL
+combo_names = NULL
+for (j in perception_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+```
+
+```{r}
+#now mooney faces bivariate associations
+mooney_variables = c('inverted_faces_reported')
+cognition_variables = c('bacs_total', 'wrat_standardscore','hvlt_total_score')
+p_vals = NULL
+combo_names = NULL
+for (j in mooney_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+cognition_variables = c('gfs_current', 'gfr_current','sps_total')
+p_vals = NULL
+combo_names = NULL
+for (j in mooney_variables){
+  for (jj in cognition_variables){
+    res = cor.test(main_df[[j]], main_df[[jj]])
+    combo_name = paste(j,jj)
+    combo_names = rbind(combo_names,combo_name)
+    print(combo_name)
+    print(pub_ready_stats(res))
+    p_val = res$p.value
+    p_vals = rbind(p_vals,p_val)
+  }
+}
+cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
+
+#multiple regression
+pub_ready_stats(lm(inverted_faces_reported ~ gfs_current+gfr_current+sps_total, main_df))
+
+```
+

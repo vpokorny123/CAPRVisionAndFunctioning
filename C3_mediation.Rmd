@@ -1,0 +1,51 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r}
+library(data.table)
+library(mediation)
+main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
+source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
+```
+
+first model is x = group, m = mooney inverted, y = role functioning
+```{r}
+main_df_subset <- main_df[main_df$phenotype_final == 'hc' | 
+                            main_df$phenotype_final == 'chr']
+res<-mediating_func(x = 'phenotype_final', m = 'inverted_faces_reported', 
+                    y =  'gfr_current',  control.value = 'hc', 
+                    treat.value = 'chr', data = main_df_subset)
+summary(res)
+pub_ready_stats(res)
+
+```
+next model is x = BACS, m = catch trial, y = context sensitivity
+```{r}
+res<-mediating_func(x = 'BACS Total', m = 'catch_trial_18_only', 
+                    y = 'context_sensitivity_all_trials', data = main_df)
+summary(res)
+pub_ready_stats(res)
+
+```
+now swap HVLT for BACS
+```{r}
+res<-mediating_func(x = 'HVLT Total', m = 'catch_trial_18_only', y = 'context_sensitivity_all_trials', data = main_df)
+summary(res)
+pub_ready_stats(res)
+```
+now swap WRAT for HVLT
+```{r}
+res<-mediating_func(x = 'WRAT Standard', m = 'catch_trial_18_only', y = 'context_sensitivity_all_trials', data = main_df)
+summary(res)
+pub_ready_stats(res)
+```
+
+
+
+
+
