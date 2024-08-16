@@ -1,3 +1,9 @@
+---
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
 First question from data request:
 1. Does atypical perceptual processing track with reduced cognitive and social functioning?
 2. Which social and cognitive functioning variables best predict atypical task performance?
@@ -49,6 +55,8 @@ sum(!is.na(main_df$upright_faces_reported))
 
 #shouldn't there be a max of 43 responses?
 #let's get rid of folks with more than 43 upright or inverted responses
+sum(main_df$upright_faces_reported>43, na.rm =TRUE)
+sum(main_df$inverted_faces_reported>43, na.rm = TRUE)
 main_df$upright_faces_reported[main_df$upright_faces_reported>43] <- NA
 main_df$inverted_faces_reported[main_df$inverted_faces_reported>43] <- NA
 hist(main_df$upright_faces_reported) 
@@ -66,11 +74,10 @@ hist(main_df$gfr_current) # ceiling effect here as well
 hist(main_df$gfs_current) # bit of a ceiling effect here it would seem
 scatterplot(main_df$gfr_current,main_df$gfs_current ) #apparent range restriction here
 
-#how about sps... very ugly
+#how about sps
 hist(main_df$sps_total)
-#looks quite a bit better! 
 scatterplot(main_df$sps_total,main_df$gfs_current)
-#log transform doesn't change correlation much
+
 ```
 
 now let's look at cog variables
@@ -111,14 +118,6 @@ main_df<-main_df[!is.na(main_df$phenotype_final)]
 #let's make biological sex numeric and make it zeros and ones
 main_df$demo_biological_sex <- as.numeric(main_df$demo_biological_sex)-1
 
-#get rid of folks with negative context sensitivity
-main_df$context_sensitivity <- ifelse(main_df$context_sensitivity<0 | 
-                                               is.na(main_df$context_sensitivity),
-                                               NA,
-                                               main_df$context_sensitivity)
-
-
-
 #let's also make some plotworthy variable names
 main_df$`BACS Total`<-main_df$bacs_total
 main_df$`WRAT Standard`<-main_df$wrat_standardscore
@@ -130,6 +129,7 @@ main_df$`Context Sensitivity`<-main_df$context_sensitivity_all_trials
 main_df$`Misleading Index`<-main_df$misleading_index
 main_df$`Inverted Faces Reported`<-main_df$inverted_faces_reported
 main_df$`Upright Faces Reported`<-main_df$upright_faces_reported
+sum(main_df$catch_trial_18_only<50, na.rm = TRUE)
 ```
 let's save out df and create new script since this one is getting long
 ```{r}

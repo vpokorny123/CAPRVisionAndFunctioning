@@ -1,7 +1,8 @@
 ---
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r}
@@ -32,7 +33,6 @@ for (j in perception_variables){
 cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
 
 #then multivariate prediction
-summary(lm(context_sensitivity ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
 pub_ready_stats(lm(context_sensitivity_all_trials ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
 
 #context sensitivity and social/role
@@ -93,23 +93,12 @@ cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
 
 pub_ready_stats(lm(inverted_faces_reported ~ gfs_current+gfr_current+sps_total, main_df))
 
-
 #cognitive functioning
 print("Mooney Faces and Cognitive Variables")
 summary(lm(upright_faces_reported ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
 summary(lm(inverted_faces_reported ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
 ```
-2. Which social and cognitive functioning variables best predict atypical task performance?
-I guess by this I just meant throw them all in the same model and see what predicts best?
-```{r}
-summary(lm(upright_faces_reported ~ gfs_current+gfr_current + sps_total +demo_age_in_years +
-             wrat_standardscore + bacs_total + hvlt_total_score, main_df))
-summary(lm(inverted_faces_reported ~ gfs_current+gfr_current + sps_total +demo_age_in_years +
-             wrat_standardscore + bacs_total + hvlt_total_score, main_df))
-summary(lm(context_sensitivity ~ gfs_current + gfr_current + sps_total +demo_age_in_years +
-             wrat_standardscore + bacs_total + hvlt_total_score, main_df))
-```
-3. Now let's look at group differences?
+
 ```{r}
 library(afex)
 library(tidyr)
@@ -169,8 +158,12 @@ Xy_vars = c(y,X1,X2)
 cocor_df<- main_df[,Xy_vars, with = FALSE]
 cocor_df_complete<- cocor_df[complete.cases(cocor_df),]
 j<- unlist(cocor_df_complete[,y, with = FALSE])
-k<- unifactorScores(cocor_df_complete[,X1, with = FALSE]) 
-h<- unifactorScores(cocor_df_complete[,X2, with = FALSE])
+k_fac_res<- unifactorScores(cocor_df_complete[,X1, with = FALSE])
+k <- k_fac_res$scores
+print(k_fac_res$FSI)
+h_fac_res<- unifactorScores(cocor_df_complete[,X2, with = FALSE])
+h <- h_fac_res$scores
+print(h_fac_res$FSI)
 run.cocor.dep.groups.overlap(j, k, h)
 pub_ready_stats(cor.test(j,k)) #context sensitivity and cognition
 pub_ready_stats(cor.test(j,h))#context sensitivity and social/role

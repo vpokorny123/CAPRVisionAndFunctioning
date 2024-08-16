@@ -129,11 +129,14 @@ pub_ready_stats<-function(x) {
   #browser()
   if ("method" %in% names(x)){
     if (x$method == "Pearson's product-moment correlation") {
+      library(MBESS)
       r = round(x$estimate,digits = 2)
       df = x$parameter
       pval = round(x$p.value,3)
       ifelse(pval==0, pval<-"<.001",pval<-paste0('=',pval))
-      output<-paste0("r(",df,")=",r,", p",pval)}
+      ci_res <- ci.cc(r, df+2)
+      cis <- paste0(round(ci_res$Lower.Limit,2),',',round(ci_res$Upper.Limit,2))
+      output<-paste0("r(",df,")=",r,", p",pval,', 95% CI [',cis,']')}
     if (grepl('t-test',x$method )) {
       t = unname(round(x$statistic,digits = 2))
       df = unname(round(x$parameter,digits = 2))

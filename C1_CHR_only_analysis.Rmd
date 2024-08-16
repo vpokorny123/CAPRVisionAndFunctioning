@@ -1,26 +1,9 @@
 ---
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
+  pdf_document: default
 ---
-First question from data request:
-1. Does atypical perceptual processing track with reduced cognitive and social functioning?
-2. Which social and cognitive functioning variables best predict atypical task performance?
-3. Does accounting for cognitive/social functioning significantly reduce group differences?
-
-So atypical perception is:
-1. Ebbinghaus -> context_sensitivity, misleading_index, helpful_index (don't know what 2sd is yet)
-2. Mooney -> Silverstein's paper from 2021 seems largely focused on upright_percent_reported 
-and inverted_percent_reported
-
-Cognitive functioning is: 
-1. the Wide Range Achievement Test (WRAT) -> wrat_standardscore
-2. the Brief Assessment of Cognition in Schizophrenia-Symbol Coding (BACS) -> bacs_total
-3. Hopkins Verbal Learning Test-Revised (HVLT-R) -> hvlt_total_score
-
-Social functioning is Global Functioning Scale:
-1. Social and Role (GFS-S/R) -> gfs, gfr
-2. Social Phobia Scale ->sps
 
 ```{r}
 library(data.table)
@@ -52,7 +35,6 @@ for (j in perception_variables){
 cbind(unname(combo_names), round(p.adjust(p_vals, 'fdr'),3))
 
 #then multivariate prediction
-summary(lm(context_sensitivity ~ wrat_standardscore + bacs_total + hvlt_total_score +nocontext_sizediffother_perc_acc, main_df))
 pub_ready_stats(lm(context_sensitivity ~ wrat_standardscore + bacs_total + hvlt_total_score, main_df))
 
 #context sensitivity and social/role

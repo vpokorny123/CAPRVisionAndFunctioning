@@ -1,7 +1,8 @@
 ---
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
+  pdf_document: default
 ---
 alright so let's see if we can replicate 2015 paper
 
@@ -15,9 +16,9 @@ load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
 first main finding is reduced misleading index in CHR using 2sd
 ```{r}
 main_df <- main_df[main_df$phenotype_final == "chr" | main_df$phenotype_final == "hc" ]
-perception_variables = c('misleading_index2SD')
 res<-t.test(misleading_index2SD ~ phenotype_final, main_df, alternative = "less", 
             var.equal = TRUE)
+res
 pub_ready_stats(res)
 
 ```
