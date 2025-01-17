@@ -7,7 +7,7 @@ library(berryFunctions)
 
 main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
 load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
-source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+source('~/Desktop/R_functions/funcs.R') # big group of functions
 
 #so what demographic variables and groups dp we want
 #probably want sex, age, race, and years of education

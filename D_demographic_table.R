@@ -6,7 +6,7 @@ library(reshape2)
 
 main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
 load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
-source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+source('~/Desktop/R_functions/funcs.R') # big group of functions
 
 continuous_demo_vars <- c("demo_age_in_years","demo_household_income")
 categorical_demo_vars <- c("demo_biological_sex", "demo_race")
@@ -43,29 +43,20 @@ rows<-unname(cbind(rownames(summary_df),summary_df,''))
 demo_table = rbind(demo_table,rows)
 
 #Race 
+relabels <- c('  % African American','  % Caucasian','  % Asian','  % Multiracial',
+              '  % Hawaiian','  % American Indian',NA,'  % Not Reported')
+original_labels = unique(main_df$demo_race)
+main_df$demo_race<-plyr::mapvalues(main_df$demo_race, from = original_labels, to = relabels)
 freqs<-table(as.factor(main_df$demo_race), 
-      as.factor(main_df$phenotype_final))
+             as.factor(main_df$phenotype_final))
+norm_freqs<-sweep(freqs, 2, colSums(freqs), `/`)
+norm_freqs[]<-paste0(round(norm_freqs*100,2),'%')
 res<- chisq.test(freqs)
 chisq.posthoc.test::chisq.posthoc.test(freqs)
 paste_stats  = pub_ready_stats(res)
 blank_row = c('Race','','','','',paste_stats)
-original_labels = unique(main_df$demo_race)
-relabels <- c('  % African American','  % Caucasian','  % Asian','  % Multiracial',
-              '  % Hawaiian','  % American Indian',NA,'  % Not Reported')
-main_df$demo_race<-plyr::mapvalues(main_df$demo_race, from = original_labels, to = relabels)
 demo_table = rbind(demo_table,blank_row)
-summary_df <- main_df %>% 
-  group_by(phenotype_final,demo_race) %>%
-  summarise(group_ns = n()) %>% 
-  group_by(phenotype_final) %>%
-  mutate(
-         percent_race = round((group_ns/sum(group_ns)) *100,1),
-         percentage_race = paste0(percent_race,'%')) %>%
-  filter(!is.na(demo_race)) %>%
-  dcast(., demo_race ~ phenotype_final,
-            value.var = 'percentage_race') %>% as.matrix()
-summary_df[is.na(summary_df)] = '0%'
-demo_table = rbind(demo_table,cbind(summary_df,rep('',7)))
+demo_table = rbind(demo_table,cbind(rownames(norm_freqs),norm_freqs,rep('',7)))
 
 #Hispanic
 main_df$demo_hispanic[main_df$demo_hispanic==4] = 0
@@ -78,6 +69,8 @@ res<- chisq.test(table(as.factor(main_df$demo_hispanic),
 paste_stats  = pub_ready_stats(res)
 rows<-cbind('% Hispanic',t(summary_df),paste_stats)
 demo_table = rbind(demo_table,rows)
+
+#medication
 
 #Income
 summary_df <- main_df %>% 

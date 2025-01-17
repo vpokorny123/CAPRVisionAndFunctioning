@@ -4,21 +4,28 @@ output:
   html_document: default
   pdf_document: default
 ---
-alright so let's see if we can replicate 2015 paper
 
 ```{r}
+library(afex)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
 library(data.table)
 main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
 source('~/Desktop/R_functions/funcs.R') # big group of functions
 load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
 ```
 
-Main finding is reduced misleading index in CHR using 2sd
-```{r}
-main_df <- main_df[main_df$phenotype_final == "chr" | main_df$phenotype_final == "hc" ]
-res<-t.test(misleading_index2SD ~ phenotype_final, main_df, alternative = "less", 
-            var.equal = TRUE)
-res
-pub_ready_stats(res)
 
+
+
+
+```{r}
+#let's look at ICCs first
+#ebbinghaus
+res<-lmer(context_sensitivity_all_trials ~  (1|phenotype_final), data = main_df)
+performance::icc(res)
+
+res<-lmer(inverted_faces_reported ~  (1|phenotype_final), data = main_df)
+performance::icc(res)
 ```

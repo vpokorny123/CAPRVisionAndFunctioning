@@ -1,0 +1,46 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r, include = FALSE}
+library(afex)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(data.table)
+main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
+source('~/Desktop/R_functions/funcs.R') # big group of functions
+load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
+```
+
+First we'll look at main effect of group on the context sensitivity difference score
+```{r}
+anova(lm(context_sensitivity_all_trials ~ phenotype_final, main_df))
+```
+
+Next we'll look at the group by condition interaction where the conditions are 
+misleading-no_context and helpful-no_context
+```{r}
+main_df_long <- pivot_longer(main_df, cols = c('misleading_index',
+                                              'helpful_index'), 
+                                     names_to = 'condition', 
+                                     values_to = 'responses')
+res <- suppressWarnings(aov_ez(data = main_df_long, dv = 'responses', within = 'condition',
+                        between = 'phenotype_final', id = 'src_subject_id'))
+summary(res)
+```
+
+Finally, here is the group by condition interaction not using any difference scores
+```{r}
+main_df_long <- pivot_longer(main_df, cols = c('misleading_overall_perc_acc',
+                                              'helpful_overall_perc_acc'), 
+                                     names_to = 'condition', 
+                                     values_to = 'responses')
+res <- suppressWarnings(aov_ez(data = main_df_long, dv = 'responses', within = 'condition',
+                        between = 'phenotype_final', id = 'src_subject_id'))
+summary(res)
+```
+in all cases the f-statistic = 1.1832 and p-value = 0.3153

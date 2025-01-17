@@ -30,7 +30,7 @@ so let's load data
 library(data.table)
 main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
 load(paste0(main_dir,'RData/fixed_upright_faces_data.RData'))
-source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+source('~/Desktop/R_functions/funcs.R') # big group of functions
 ```
 
 let's look at hists and scatterplots of key variables
@@ -63,9 +63,11 @@ hist(main_df$upright_faces_reported)
 hist(main_df$upright_percent_reported) 
 hist(main_df$upright_percent_reported_adjusted) 
 hist(main_df$inverted_faces_reported) 
+hist(main_df$scrambled_faces_reported)
 
 #phew so hopefully we've sufficiently cleaned these data
 scatterplot(main_df$upright_faces_reported,main_df$inverted_faces_reported)
+
 
 ```
 now let's look at social variables... 
@@ -94,14 +96,29 @@ scatterplot(main_df$hvlt_total_score, main_df$wrat_standardscore) #not great
 
 Finally we need to do a bit of recoding of some variables
 ```{r}
+#during revision I found that a few subjects had the wrong phenotype designation.
+# These are currently being fixed in the database, so let's just fix
+# them by hand here
+#just for posterity here are the reasons these folks should not be HC:
+#20366 and 50458 have current scid diagnoses 
+#20622 is actively on antidepressants and has lifetime MDD diagnosis
+#10244 is currently taking stimulants and has a scid diagnosis of adult adhd.
+# 50090 had subthreshold MDD (which I think is okay), but is currently taking
+#       anxiolytics (Buspirone)
+main_df$phenotype[main_df$src_subject_id %in% 
+                    c(20366,50458,20622,10244,50090)] <- 'hsc'
+
+
+
 main_df$help_index = main_df$helpful_index #something weird about this variable label
-main_df$phenotype_final<-ifelse(main_df$phenotype=="hsc",
-                                                  ifelse(main_df$p1_sev>1 | 
-                                                         main_df$p2_sev>1 | 
-                                                         main_df$p3_sev>1 |
-                                                         main_df$p4_sev>1 | 
-                                                         main_df$p5_sev>1,
-                                                         "hsc_sub","hsc_other"),main_df$phenotype)
+main_df$phenotype_final<-
+  ifelse(main_df$phenotype=="hsc",
+         ifelse(main_df$p1_sev>1 | 
+                main_df$p2_sev>1 | 
+                main_df$p3_sev>1 |
+                main_df$p4_sev>1 | 
+                main_df$p5_sev>1,
+                "hsc_sub","hsc_other"),main_df$phenotype)
 
 main_df$phenotype <- as.factor(main_df$phenotype)
 main_df$phenotype_final <- factor(main_df$phenotype_final, 

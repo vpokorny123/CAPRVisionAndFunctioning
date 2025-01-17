@@ -8,7 +8,7 @@ output:
 ```{r}
 library(data.table)
 main_dir = "/Users/victorpokorny/Library/CloudStorage/GoogleDrive-vpokorny123@gmail.com/My Drive/CAPR Ebbinghaus and Mooney/"
-source(paste0(main_dir,'R_scripts/funcs.R')) # big group of functions
+source('~/Desktop/R_functions/funcs.R') # big group of functions
 load(file=paste0(main_dir,"RData/cleaned.RData")) #read in the data
 ```
 
@@ -145,12 +145,11 @@ for (j in contrasts ){
    print(pub_ready_stats(res))
 }
 #plot
-plot_groups(main_df_long, quo(phenotype_final))
+
 ```
 
 ```{r}
 # test whether correlations are significantly different for social vs. cognitive
-
 y = 'context_sensitivity_all_trials'
 X1 = c('bacs_total','hvlt_total_score','wrat_standardscore')
 X2 = c('gfr_current', 'gfs_current','sps_total')
@@ -170,7 +169,10 @@ pub_ready_stats(cor.test(j,h))#context sensitivity and social/role
 scatterplot(j,k)
 scatterplot(j,h)
 
+```
 
+
+```{r}
 y = 'inverted_faces_reported'
 X1 = c('bacs_total','hvlt_total_score','wrat_standardscore')
 X2 = c('gfr_current', 'gfs_current','sps_total')
@@ -192,15 +194,13 @@ scatterplot(j,h)
 
 ```
 
-Ok so story so far is that treating cognition and social/role functioning as latent variables and grabbing factor scores we get a significant difference in correlations
-
-
-
 
 ```{r}
-#does context sensitivity correlate with inverted face detection
-pub_ready_stats(cor.test(main_df$context_sensitivity_all_trials,main_df$inverted_faces_reported))
-pub_ready_stats(cor.test(main_df$context_sensitivity_all_trials,main_df$upright_faces_reported))
+#does context sensitivity correlate with inverted face detection?
+pub_ready_stats(cor.test(main_df$context_sensitivity_all_trials,
+                         main_df$inverted_faces_reported))
+pub_ready_stats(cor.test(main_df$context_sensitivity_all_trials,
+                         main_df$upright_faces_reported))
 ```
 
 
