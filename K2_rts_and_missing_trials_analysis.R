@@ -8,7 +8,7 @@ rt_merged$mooney_rt_faces_all_conditions <-
 rt_merged$mooney_response_too_slow_all_conditions <- 
   (rt_merged$catch_mooney_response_too_slow +
      rt_merged$upright_mooney_response_too_slow +
-     rt_merged$inverted_mooney_response_too_slow)
+     rt_merged$inverted_mooney_response_too_slow)/3
 
 #test for group differences in response times 
 #ebbinghaus
